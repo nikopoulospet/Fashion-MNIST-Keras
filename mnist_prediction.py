@@ -84,30 +84,29 @@ def makeModel():
 
 # Train Model and tune hyperparamiter
 
-bestEpochs = 0
-bestBatch = 0
-bestScore = 0
-for epochs in range(5,100,5):
-    for batchSize in range(100,1000,100):
-        model = makeModel()
-        history = model.fit(x_train, y_train,
-                            validation_data=(x_val, y_val),
-                            epochs=epochs,
-                            batch_size=batchSize)
-        score = model.evaluate(x_test, y_test, verbose=0)
-        if bestScore < score[1]:
-            bestEpochs = epochs
-            bestBatch = batchSize
-            bestScore = score[1]
-
-print( "Best Epochs ", bestEpochs, " best batch size ", bestBatch)
-
-# prints "Best Epochs  5  best batch size  800"
-# model = makeModel()
-# history = model.fit(x_train, y_train,
+# bestEpochs = 0
+# bestBatch = 0
+# bestScore = 0
+# for epochs in range(5,100,5):
+#     for batchSize in range(100,1000,100):
+#         model = makeModel()
+#         history = model.fit(x_train, y_train,
 #                             validation_data=(x_val, y_val),
-#                             epochs=15,
-#                             batch_size=100)
+#                             epochs=epochs,
+#                             batch_size=batchSize)
+#         score = model.evaluate(x_test, y_test, verbose=0)
+#         if bestScore < score[1]:
+#             bestEpochs = epochs
+#             bestBatch = batchSize
+#             bestScore = score[1]
+#
+# print( "Best Epochs ", bestEpochs, " best batch size ", bestBatch)
+
+model = makeModel()
+history = model.fit(x_train, y_train,
+                            validation_data=(x_val, y_val),
+                            epochs=15,
+                            batch_size=200)
 
 # Report Results
 
