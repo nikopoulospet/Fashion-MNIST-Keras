@@ -1,6 +1,7 @@
+from operator import mod
 import keras.utils.np_utils
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Conv2D
+from keras.layers import Dense, Dropout, BatchNormalization, Activation
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import confusion_matrix
@@ -14,6 +15,8 @@ images = np.load("images.npy")  # np shape: (6500, 784) -> 784 = 28*28
 labels = np.load("labels.npy")  # np shape: (6500, )
 class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
                'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
+
+images = images.reshape(6500, 784)
 # set image data to 0-1 scale
 images = images / 255.0
 
@@ -30,8 +33,10 @@ val = int(labels.shape[0] * .15) + train
 
 x_train = images[:train]
 y_train = labels[:train]
+
 x_val = images[train:val]
 y_val = labels[train:val]
+
 x_test = images[val:]
 y_test = labels[val:]
 
@@ -49,35 +54,42 @@ if debug:
 
 
 # Model Template
-
-model = Sequential()  # declare model
-model.add(Dense(28*28, input_shape=(28*28, ),
-          kernel_initializer='he_normal'))  # first layer
-# model.add(Activation('relu'))
-model.add(Dense(28*28, kernel_initializer='he_normal'))
-model.add(Dense(8, activation='relu'))
-model.add(Dense(1, activation='sigmoid'))
-#
-# Fill in Model Here
-#
-#
 # Initialize weights randomly for every layer, try different initialization schemes.
 # Experiment with using ReLu Activation Units, as well as SeLu and Tanh.
 # Experiment with number of layers and number of neurons in each layer, including the first layer.
 
-model.add(Dense(10, kernel_initializer='he_normal'))  # last layer
+# Number of layers
+# Number of neurons in each layers
+# Batch Size
+# Epochs
+# Optimizer
+# Loss function
+# Activation
+
+model = Sequential()  # declare model
+model.add(Dense(28*28, input_shape=(28*28, ),
+          kernel_initializer='he_uniform'))  # first layer
+model.add(Activation('selu'))
+model.add(Dropout(0.5))
+model.add(BatchNormalization())
+
+model.add(Dense(28*28, kernel_initializer='he_uniform'))
+model.add(Activation('selu'))
+model.add(Dropout(0.5))
+model.add(BatchNormalization())
+
+model.add(Dense(10, kernel_initializer='he_uniform'))  # last layer
 model.add(Activation('softmax'))
 
-
 # Compile Model
-model.compile(optimizer='sgd',
+model.compile(optimizer='adam',
               loss='categorical_crossentropy',
               metrics=['accuracy'])
 
 # Train Model
 history = model.fit(x_train, y_train,
                     validation_data=(x_val, y_val),
-                    epochs=10,
+                    epochs=15,
                     batch_size=512)
 
 
