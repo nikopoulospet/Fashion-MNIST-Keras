@@ -4,7 +4,8 @@ from keras.layers import Dense, Activation, Dropout
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import confusion_matrix
-
+import seaborn as sn
+import pandas as pd
 
 debug = False
 
@@ -51,47 +52,86 @@ if debug:
 
 
 # Model Template
+def makeModel():
+    # network parameters
+    dropOut = 0.15
 
-# network parameters
-dropOut = 0.15
+    model = Sequential()  # declare model
+    model.add(Dense(784, input_dim = 784))  # first layer
+    model.add(Activation('relu'))
+    model.add(Dropout(dropOut))
 
-model = Sequential()  # declare model
-model.add(Dense(784, input_dim=784))  # first layer
-model.add(Activation('relu'))
-model.add(Dropout(dropOut))
+    model.add(Dense(784))
+    model.add(Activation('relu'))
+    model.add(Dropout(dropOut))
 
-model.add(Dense(784))
-model.add(Activation('relu'))
-model.add(Dropout(dropOut))
+    model.add(Dense(256))
+    model.add(Activation('relu'))
+    model.add(Dropout(dropOut))
 
-model.add(Dense(256))
-model.add(Activation('relu'))
-model.add(Dropout(dropOut))
+    model.add(Dense(10))
+    model.add(Activation('softmax'))
 
-model.add(Dense(10))
-model.add(Activation('softmax'))
+    # Initialize weights randomly for every layer, try different initialization schemes.
+    # Experiment with using ReLu Activation Units, as well as SeLu and Tanh.
+    # Experiment with number of layers and number of neurons in each layer, including the first layer.
 
-# Initialize weights randomly for every layer, try different initialization schemes.
-# Experiment with using ReLu Activation Units, as well as SeLu and Tanh.
-# Experiment with number of layers and number of neurons in each layer, including the first layer.
+    # Compile Model
+    model.compile(optimizer='adam',
+                  loss='categorical_crossentropy',
+                  metrics=['accuracy'])
+    return model
 
-# Compile Model
-model.compile(optimizer='sgd',
-              loss='categorical_crossentropy',
-              metrics=['accuracy'])
+# Train Model and tune hyperparamiter
 
-# Train Model
-history = model.fit(x_train, y_train,
-                    validation_data=(x_val, y_val),
-                    epochs=10,
-                    batch_size=256)
+bestEpochs = 0
+bestBatch = 0
+bestScore = 0
+for epochs in range(5,100,5):
+    for batchSize in range(100,1000,100):
+        model = makeModel()
+        history = model.fit(x_train, y_train,
+                            validation_data=(x_val, y_val),
+                            epochs=epochs,
+                            batch_size=batchSize)
+        score = model.evaluate(x_test, y_test, verbose=0)
+        if bestScore < score[1]:
+            bestEpochs = epochs
+            bestBatch = batchSize
+            bestScore = score[1]
+
+print( "Best Epochs ", bestEpochs, " best batch size ", bestBatch)
+
+# prints "Best Epochs  5  best batch size  800"
+# model = makeModel()
+# history = model.fit(x_train, y_train,
+#                             validation_data=(x_val, y_val),
+#                             epochs=15,
+#                             batch_size=100)
+
+# Report Results
+
+score = model.evaluate(x_test, y_test, verbose=0)
+print("Test loss:", score[0])
+print("Test accuracy:", score[1])
 
 # Confusion Matrix
 y_pred = model.predict(x_test)
 y_pred = np.argmax(y_pred, axis=1)
 y_test = np.argmax(y_test, axis=1)
 cm = confusion_matrix(y_test, y_pred)
-print(cm)
+df_cm = pd.DataFrame(cm, index = [i for i in "ABCDEFGHIJ"],
+                  columns = [i for i in "ABCDEFGHIJ"])
+plt.figure(figsize = (10,7))
+sn.heatmap(df_cm, annot=True)
+
+# y_pred = model.predict(x_test)
+# y_pred = np.argmax(y_pred, axis=1)
+# y_test = np.argmax(y_test, axis=1)
+# cm = confusion_matrix(y_test, y_pred)
+#
+# plt.imshow(np.reshape(cm, [10, 10]), cmap='gray')
+# plt.show()
 
 # Graphing accuracy
 fig, ax = plt.subplots()
