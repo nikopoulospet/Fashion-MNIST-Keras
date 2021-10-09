@@ -1,7 +1,10 @@
-from operator import mod
 import keras.utils.np_utils
 from keras.models import Sequential
+from keras.wrappers.scikit_learn import KerasClassifier
+from sklearn.model_selection import GridSearchCV
 from keras.layers import Dense, Dropout, BatchNormalization, Activation
+from keras.regularizers import l1_l2, l1, l2
+
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import confusion_matrix
@@ -16,7 +19,6 @@ labels = np.load("labels.npy")  # np shape: (6500, )
 class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
                'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
 
-images = images.reshape(6500, 784)
 # set image data to 0-1 scale
 images = images / 255.0
 
@@ -54,55 +56,57 @@ if debug:
 
 
 # Model Template
+model = Sequential()  # declare model
+model.add(Dense(28*28, input_shape=(28*28, ),
+          kernel_initializer='he_normal'))  # first layer
+# model.add(Activation('relu'))
+model.add(Dense(28*28, kernel_initializer='he_normal'))
+model.add(Dense(8, activation='relu'))
+model.add(Dense(1, activation='sigmoid'))
+#
+# Fill in Model Here
+#
+#
 # Initialize weights randomly for every layer, try different initialization schemes.
 # Experiment with using ReLu Activation Units, as well as SeLu and Tanh.
 # Experiment with number of layers and number of neurons in each layer, including the first layer.
 
-# Number of layers
-# Number of neurons in each layers
-# Batch Size
-# Epochs
-# Optimizer
-# Loss function
-# Activation
-
-model = Sequential()  # declare model
-model.add(Dense(28*28, input_shape=(28*28, ),
-          kernel_initializer='he_uniform'))  # first layer
-model.add(Activation('selu'))
-model.add(Dropout(0.5))
-model.add(BatchNormalization())
-
-model.add(Dense(28*28, kernel_initializer='he_uniform'))
-model.add(Activation('selu'))
-model.add(Dropout(0.5))
-model.add(BatchNormalization())
-
-model.add(Dense(10, kernel_initializer='he_uniform'))  # last layer
+model.add(Dense(10, kernel_initializer='he_normal'))  # last layer
 model.add(Activation('softmax'))
 
+
 # Compile Model
-model.compile(optimizer='adam',
+model.compile(optimizer='sgd',
               loss='categorical_crossentropy',
               metrics=['accuracy'])
 
 # Train Model
 history = model.fit(x_train, y_train,
                     validation_data=(x_val, y_val),
-                    epochs=15,
-                    batch_size=512)
+                    epochs=10,
+                    batch_size=256)
 
+pred = model.predict(x_test)
+pred = np.argmax(pred, axis=1)
+indices = [i for i, v in enumerate(pred) if pred[i] != y_test[i]]
+subset_of_wrongly_predicted = [x_test[i] for i in indices]
 
-# Report Results
+# get three images
+image_one = subset_of_wrongly_predicted[0]
+image_two = subset_of_wrongly_predicted[1]
+image_three = subset_of_wrongly_predicted[2]
+for i in range(3):
+    im = subset_of_wrongly_predicted[i]
+    plt.imshow(np.reshape(im, [28, 28]), cmap='gray')
+    plt.show()
 
-print(history.history)
-score = model.evaluate(x_test, y_test, verbose=0)
-print("Test loss:", score[0])
-print("Test accuracy:", score[1])
-
-# Confusion Matrix
-y_pred = model.predict(x_test)
-y_pred = np.argmax(y_pred, axis=1)
-y_test = np.argmax(y_test, axis=1)
-cm = confusion_matrix(y_test, y_pred)
-print(cm)
+# epochs v accuracy, val_accuracy
+fig, ax = plt.subplots()
+ax.plot(np.arange(0, int(history.params['epochs'])),
+        history.history['accuracy'], label='accuracy')
+ax.plot(np.arange(0, int(history.params['epochs'])),
+        history.history['val_accuracy'], label='val_accuracy')
+ax.legend(loc='upper center', shadow=True, fontsize='x-large')
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy')
+plt.show()
