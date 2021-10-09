@@ -55,7 +55,8 @@ model.add(Dense(28*28, input_shape=(28*28, ),
           kernel_initializer='he_normal'))  # first layer
 # model.add(Activation('relu'))
 model.add(Dense(28*28, kernel_initializer='he_normal'))
-model.add(Activation('selu'))
+model.add(Dense(8, activation='relu'))
+model.add(Dense(1, activation='sigmoid'))
 #
 # Fill in Model Here
 #
@@ -86,8 +87,8 @@ print(history.history)
 score = model.evaluate(x_test, y_test, verbose=0)
 print("Test loss:", score[0])
 print("Test accuracy:", score[1])
-# figure out confusion matrix
 
+# Confusion Matrix
 y_pred = model.predict(x_test)
 y_pred = np.argmax(y_pred, axis=1)
 y_test = np.argmax(y_test, axis=1)
