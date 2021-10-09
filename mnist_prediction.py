@@ -71,23 +71,25 @@ model.add(Dropout(dropOut))
 model.add(Dense(10))
 model.add(Activation('softmax'))
 
-# Initialize weights randomly for every layer, try different initialization schemes.
-# Experiment with using ReLu Activation Units, as well as SeLu and Tanh.
-# Experiment with number of layers and number of neurons in each layer, including the first layer.
-
 # Compile Model
-model.compile(optimizer='sgd',
+model.compile(optimizer='adam',
               loss='categorical_crossentropy',
               metrics=['accuracy'])
 
 # Train Model
 history = model.fit(x_train, y_train,
                     validation_data=(x_val, y_val),
-                    epochs=10,
-                    batch_size=256)
+                    epochs=150,
+                    batch_size=512)
+
+# Report Results
+print(history.history)
+y_pred = model.predict(x_test)
+score = model.evaluate(x_test, y_test, verbose=0)
+print("Test loss:", score[0])
+print("Test accuracy:", score[1])
 
 # Confusion Matrix
-y_pred = model.predict(x_test)
 y_pred = np.argmax(y_pred, axis=1)
 y_test = np.argmax(y_test, axis=1)
 cm = confusion_matrix(y_test, y_pred)
