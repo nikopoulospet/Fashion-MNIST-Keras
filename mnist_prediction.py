@@ -1,7 +1,6 @@
-from operator import mod
 import keras.utils.np_utils
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, BatchNormalization, Activation
+from keras.layers import Dense, Activation, Conv2D, Dropout
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import confusion_matrix
@@ -11,12 +10,10 @@ debug = False
 
 # ++++++++++ data preprocessing ++++++++++++++++++++++++++++++++++
 # load data from .npy files (static paths)
-images = np.load("images.npy")  # np shape: (6500, 784) -> 784 = 28*28
+images = np.load("images.npy")  # np shape: (6500, 78q4) -> 784 = 28*28
 labels = np.load("labels.npy")  # np shape: (6500, )
 class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
                'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
-
-images = images.reshape(6500, 784)
 # set image data to 0-1 scale
 images = images / 255.0
 
@@ -54,32 +51,29 @@ if debug:
 
 
 # Model Template
+
+# network parameters
+dropOut = 0.15
+
+model = Sequential()  # declare model
+model.add(Dense(784, input_dim = 784))  # first layer
+model.add(Activation('relu'))
+model.add(Dropout(dropOut))
+
+model.add(Dense(784))
+model.add(Activation('relu'))
+model.add(Dropout(dropOut))
+
+model.add(Dense(256))
+model.add(Activation('relu'))
+model.add(Dropout(dropOut))
+
+model.add(Dense(10))
+model.add(Activation('softmax'))
+
 # Initialize weights randomly for every layer, try different initialization schemes.
 # Experiment with using ReLu Activation Units, as well as SeLu and Tanh.
 # Experiment with number of layers and number of neurons in each layer, including the first layer.
-
-# Number of layers
-# Number of neurons in each layers
-# Batch Size
-# Epochs
-# Optimizer
-# Loss function
-# Activation
-
-model = Sequential()  # declare model
-model.add(Dense(28*28, input_shape=(28*28, ),
-          kernel_initializer='he_uniform'))  # first layer
-model.add(Activation('selu'))
-model.add(Dropout(0.5))
-model.add(BatchNormalization())
-
-model.add(Dense(28*28, kernel_initializer='he_uniform'))
-model.add(Activation('selu'))
-model.add(Dropout(0.5))
-model.add(BatchNormalization())
-
-model.add(Dense(10, kernel_initializer='he_uniform'))  # last layer
-model.add(Activation('softmax'))
 
 # Compile Model
 model.compile(optimizer='adam',
@@ -106,3 +100,17 @@ y_pred = np.argmax(y_pred, axis=1)
 y_test = np.argmax(y_test, axis=1)
 cm = confusion_matrix(y_test, y_pred)
 print(cm)
+
+pred = model.predict(x_test)
+pred = np.argmax(pred, axis=1)
+indices = [i for i,v in enumerate(pred) if pred[i]!=y_test[i]]
+subset_of_wrongly_predicted = [x_test[i] for i in indices]
+
+# get three images
+image_one = subset_of_wrongly_predicted[0]
+image_two = subset_of_wrongly_predicted[1]
+image_three = subset_of_wrongly_predicted[2]
+for i in range(3):
+    im = subset_of_wrongly_predicted[i]
+    plt.imshow(np.reshape(im,[28,28]), cmap='gray')
+    plt.show()
