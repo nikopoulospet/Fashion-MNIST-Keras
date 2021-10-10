@@ -1,4 +1,5 @@
 import keras.utils.np_utils
+import tensorflow
 from keras import initializers
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Dropout
@@ -85,32 +86,34 @@ def makeModel():
 """
  Train Model and tune hyperparamiter
 """
-# bestEpochs = 0
-# bestBatch = 0
-# bestScore = 0
-# for epochs in range(5,100,5):
-#     for batchSize in range(100,1000,100):
-#         model = makeModel()
-#         history = model.fit(x_train, y_train,
-#                             validation_data=(x_val, y_val),
-#                             epochs=epochs,
-#                             batch_size=batchSize)
-#         score = model.evaluate(x_test, y_test, verbose=0)
-#         if bestScore < score[1]:
-#             bestEpochs = epochs
-#             bestBatch = batchSize
-#             bestScore = score[1]
-#
-# print( "Best Epochs ", bestEpochs, " best batch size ", bestBatch)
+bestEpochs = 0
+bestBatch = 0
+bestScore = 0
+for epochs in range(10,100,10):
+    for batchSize in range(100,1000,100):
+        model = makeModel()
+        history = model.fit(x_train, y_train,
+                            validation_data=(x_val, y_val),
+                            epochs=epochs,
+                            batch_size=batchSize)
+        score = model.evaluate(x_test, y_test, verbose=0)
+        if bestScore < score[1]:
+            bestEpochs = epochs
+            bestBatch = batchSize
+            bestScore = score[1]
+        del model
 
+print( "Best Epochs ", bestEpochs, " best batch size ", bestBatch)
+#best is 90, 300
 model = makeModel()
 history = model.fit(x_train, y_train,
                             validation_data=(x_val, y_val),
-                            epochs=20,
-                            batch_size=200)
-
+                            epochs=bestEpochs,
+                            batch_size=bestBatch)
+mobilenet_save_path = "bestModel"
+tensorflow.saved_model.save(model, mobilenet_save_path)
 # Report Results
-
+# model.save('bestModel')
 score = model.evaluate(x_test, y_test, verbose=0)
 print("Test loss:", score[0])
 print("Test accuracy:", score[1])
