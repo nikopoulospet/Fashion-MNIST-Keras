@@ -1,4 +1,5 @@
 import keras.utils.np_utils
+from keras import initializers
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Dropout
 import matplotlib.pyplot as plt
@@ -57,7 +58,7 @@ def makeModel():
     dropOut = 0.15
 
     model = Sequential()  # declare model
-    model.add(Dense(784, input_dim = 784))  # first layer
+    model.add(Dense(784, input_dim = 784, kernel_initializer = initializers.RandomNormal(stddev=0.01)))  # first layer
     model.add(Activation('relu'))
     model.add(Dropout(dropOut))
 
@@ -81,9 +82,9 @@ def makeModel():
                   loss='categorical_crossentropy',
                   metrics=['accuracy'])
     return model
-
-# Train Model and tune hyperparamiter
-
+"""
+ Train Model and tune hyperparamiter
+"""
 # bestEpochs = 0
 # bestBatch = 0
 # bestScore = 0
@@ -105,7 +106,7 @@ def makeModel():
 model = makeModel()
 history = model.fit(x_train, y_train,
                             validation_data=(x_val, y_val),
-                            epochs=15,
+                            epochs=20,
                             batch_size=200)
 
 # Report Results
